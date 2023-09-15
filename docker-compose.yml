@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  snooper:
+    environment:
+      - PYTHONUNBUFFERED=1
+    # image: telemonitor:latest
+    build: ./
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
