@@ -8,9 +8,9 @@ Check logs in the ./logs directory, or run `docker compose logs -f` to tail outp
 ## Backdoored extension
 The culprit extension is `lnebjgioddkafaldaaeooeghlcholnnp`: Find website used fonts.
 
-Two days after installation the extension initiates a background websocket connection to wss://ext.hanaila[.]com. The infected host then listens for commands from the C2.
+Two days after installation the extension initiates a persistent background websocket connection to wss://ext.hanaila[.]com/ws/. The code responsible for this is in javascripts/background.js. After initial connection and sending some of the victim's metadata, the infected host then listens for commands from the C2.
 
-I created this project to listen in on the commands being sent to the infected hosts to understand what the purpose of this backdoor is.
+I created this project to listen in on the commands being sent to infected hosts to understand what the purpose of this backdoor is.
 
 ## Findings
 Initial findings suggest that this extension is being used as a botnet to piggyback off of infected clients to proxy web requests.
@@ -28,13 +28,14 @@ The C2 sends a message like this and expects the infected client to retrieve the
   "incognito": "true"
 }
 ```
-Disparate user agents across these `request` payloads suggest these are coming from many different clients (or one client that is randomising their user agent). One working theory is that this is backend infrastructure for a morally questionable proxy service.
+Disparate user agents and urls across these `request` payloads suggest these are coming from many different clients (or one client that is randomising their user agent and doing lots of different kinds of browsing). One working theory is that this is backend infrastructure for a morally questionable proxy service.
 
-One consistency among all infected hosts are periodic requests from the C2 to visit api.ipgeolocation[.]io with a hardcoded, consistent API key across infected users. The API key is 04121b22f4244f55a04a496edcc8fd9a. It appears that this API key
+One consistency among all infected hosts are periodic requests from the C2 to visit api.ipgeolocation[.]io with a hardcoded, consistent API key across infected users. The API key is 04121b22f4244f55a04a496edcc8fd9a. This API key is potentially owned by the threat actor.
 
 ## IOCs
 
 ```
 ext.hanaila[.]com
+wss://ext.hanaila[.]com/ws/
 https://https://api.ipgeolocation[.].io/ipgeo?apiKey=04121b22f4244f55a04a496edcc8fd9a&include=hostname,security,useragent&ip=<some_ip>
 ```
